@@ -6,36 +6,21 @@ info:
     Enables RAG grounding with files (SFDRIVE), Knowledge articles, or custom retrievers.
 
     ## Resources (10 endpoints)
-    | # | Path | Method | Resource Interface |
-    |---|------|--------|--------------------|
-    | 1 | `/einstein/data-libraries` | GET | IAiGroundingLibraryCollectionResource |
-    | 2 | `/einstein/data-libraries` | POST | IAiGroundingLibraryCollectionResource |
-    | 3 | `/einstein/data-libraries/{libraryId}` | GET | IAiGroundingLibraryResource |
-    | 4 | `/einstein/data-libraries/{libraryId}` | PATCH | IAiGroundingLibraryResource |
-    | 5 | `/einstein/data-libraries/{libraryId}` | DELETE | IAiGroundingLibraryResource |
-    | 6 | `/einstein/data-libraries/{libraryId}/file-upload-urls` | POST | IAiGroundingLibraryFileUploadResource |
-    | 7 | `/einstein/data-libraries/{libraryId}/files` | POST | IAiGroundingLibraryAddFilesResource |
-    | 8 | `/einstein/data-libraries/{libraryId}/indexing` | POST | IAiGroundingLibraryProvisionResource |
-    | 9 | `/einstein/data-libraries/{libraryId}/status` | GET | IAiGroundingLibraryStatusResource |
-    | 10 | `/einstein/data-libraries/{libraryId}/upload-readiness` | GET | IAiGroundingLibraryUploadReadinessResource |
+    | # | Path | Method |
+    |---|------|--------|
+    | 1 | `/einstein/data-libraries` | GET |
+    | 2 | `/einstein/data-libraries` | POST |
+    | 3 | `/einstein/data-libraries/{libraryId}` | GET |
+    | 4 | `/einstein/data-libraries/{libraryId}` | PATCH |
+    | 5 | `/einstein/data-libraries/{libraryId}` | DELETE |
+    | 6 | `/einstein/data-libraries/{libraryId}/file-upload-urls` | POST |
+    | 7 | `/einstein/data-libraries/{libraryId}/files` | POST |
+    | 8 | `/einstein/data-libraries/{libraryId}/indexing` | POST |
+    | 9 | `/einstein/data-libraries/{libraryId}/status` | GET |
+    | 10 | `/einstein/data-libraries/{libraryId}/upload-readiness` | GET |
   version: '66.0'
 servers:
   - url: /services/data/v66.0
-x-onestore:
-  version: 1.0.0
-x-connect:
-  team: ADL Team (Agentforce Data Library)
-  features:
-    AdlConnectFeature:
-      families:
-        AdlResourceFamily:
-          wrapper:
-            class-name: AiGroundingLibrary
-          generate-aura-controller: true
-          apply-rate-limits: true
-          min-version: 260
-          connect-hidden:
-            - Apex
 
 paths:
   # =============================================================================
@@ -43,13 +28,6 @@ paths:
   # =============================================================================
   /einstein/data-libraries:
     description: AI Grounding Library collection endpoint (GET list, POST create)
-    x-connect:
-      resource-name: IAiGroundingLibraryCollectionResource
-      family: AdlResourceFamily
-      min-version: 260
-      allows-portal-users: false
-      user-checks: USER_CAN_VIEW_EDIT_GENAI_UNIFIED_SETUP
-      supported-formats: JSON
 
     get:
       operationId: listLibraries
@@ -70,21 +48,6 @@ paths:
           description: Filter by grounding source type
           schema:
             $ref: '#/components/schemas/GroundingSourceTypeEnum'
-      x-connect:
-        cost: Cheap
-        min-version: 260
-        signatures:
-          - methodName: listLibraries
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters: []
-          - methodName: listLibrariesFiltered
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - sourceType
       responses:
         '200':
           description: List of libraries
@@ -114,16 +77,6 @@ paths:
 
         **Note:** Presigned URLs are not returned in the create response.
         Use `/file-upload-urls` to obtain upload URLs after readiness.
-      x-connect:
-        cost: Expensive
-        min-version: 260
-        signatures:
-          - methodName: createLibrary
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - createLibraryInput
       requestBody:
         required: true
         content:
@@ -147,13 +100,6 @@ paths:
   # =============================================================================
   /einstein/data-libraries/{libraryId}:
     description: Single AI Grounding Library endpoint (GET detail, PATCH update, DELETE remove)
-    x-connect:
-      resource-name: IAiGroundingLibraryResource
-      family: AdlResourceFamily
-      min-version: 260
-      allows-portal-users: false
-      user-checks: USER_CAN_VIEW_EDIT_GENAI_UNIFIED_SETUP
-      supported-formats: JSON
     parameters:
       - $ref: '#/components/parameters/libraryIdPath'
 
@@ -164,16 +110,6 @@ paths:
         Returns the full details of a single AI Grounding Library including
         source type, dataspace scope, and a `groundingSource` with type-specific details
         (file refs for SFDRIVE, knowledge config for KNOWLEDGE, retriever for RETRIEVER).
-      x-connect:
-        cost: Cheap
-        min-version: 260
-        signatures:
-          - methodName: getLibrary
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - libraryId
       responses:
         '200':
           description: Library detail
@@ -192,16 +128,6 @@ paths:
         FileRefs, KnowledgeConfig, LibSrcRel, SourceStages, GroundingSource, Retriever, SearchIndex.
 
         Cannot delete libraries that are in use by agents. Returns 400 if agents are associated.
-      x-connect:
-        cost: Expensive
-        min-version: 260
-        signatures:
-          - methodName: deleteLibrary
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: false
-            parameters:
-              - libraryId
       responses:
         '204':
           description: Library deleted successfully
@@ -221,17 +147,6 @@ paths:
         Attempting to update a KNOWLEDGE or RETRIEVER library returns 400.
 
         - `masterLabel` / `description`: Update library metadata (no re-provisioning).
-      x-connect:
-        cost: Expensive
-        min-version: 260
-        signatures:
-          - methodName: updateLibrary
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - libraryId
-              - updateLibraryInput
       requestBody:
         required: true
         content:
@@ -255,13 +170,6 @@ paths:
   # =============================================================================
   /einstein/data-libraries/{libraryId}/file-upload-urls:
     description: Generate presigned URLs for file uploads to an existing SFDRIVE library
-    x-connect:
-      resource-name: IAiGroundingLibraryFileUploadResource
-      family: AdlResourceFamily
-      min-version: 260
-      allows-portal-users: false
-      user-checks: USER_CAN_VIEW_EDIT_GENAI_UNIFIED_SETUP
-      supported-formats: JSON
     parameters:
       - $ref: '#/components/parameters/libraryIdPath'
 
@@ -275,17 +183,6 @@ paths:
         **Requires UDLO readiness:** The library's UDLO must be ACTIVE before calling
         this endpoint. Poll `/upload-readiness` until `ready=true` first. Calling this
         endpoint before readiness returns 400 with `ADL_UPLOAD_NOT_READY`.
-      x-connect:
-        cost: Expensive
-        min-version: 260
-        signatures:
-          - methodName: generateFileUploadUrls
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - libraryId
-              - fileUploadUrlsInput
       requestBody:
         required: true
         content:
@@ -309,13 +206,6 @@ paths:
   # =============================================================================
   /einstein/data-libraries/{libraryId}/files:
     description: Add files to existing SFDRIVE library
-    x-connect:
-      resource-name: IAiGroundingLibraryAddFilesResource
-      family: AdlResourceFamily
-      min-version: 260
-      allows-portal-users: false
-      user-checks: USER_CAN_VIEW_EDIT_GENAI_UNIFIED_SETUP
-      supported-formats: JSON
     parameters:
       - $ref: '#/components/parameters/libraryIdPath'
 
@@ -328,17 +218,6 @@ paths:
         At least one uploaded file is required.
         Validates: no duplicate file names in batch, total file count <= 1000.
         Poll `/status` for re-hydration progress.
-      x-connect:
-        cost: Expensive
-        min-version: 260
-        signatures:
-          - methodName: addFiles
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - libraryId
-              - addFilesInput
       requestBody:
         required: true
         content:
@@ -362,13 +241,6 @@ paths:
   # =============================================================================
   /einstein/data-libraries/{libraryId}/indexing:
     description: Start async indexing of Data Cloud resources
-    x-connect:
-      resource-name: IAiGroundingLibraryProvisionResource
-      family: AdlResourceFamily
-      min-version: 260
-      allows-portal-users: false
-      user-checks: USER_CAN_VIEW_EDIT_GENAI_UNIFIED_SETUP
-      supported-formats: JSON
     parameters:
       - $ref: '#/components/parameters/libraryIdPath'
 
@@ -386,17 +258,6 @@ paths:
         `/upload-readiness` first. Calling `/indexing` before readiness returns
         400 with "Library is not upload-ready yet."
         Poll `/status` to track progress.
-      x-connect:
-        cost: Expensive
-        min-version: 260
-        signatures:
-          - methodName: provisionPipeline
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - libraryId
-              - provisionInput
       requestBody:
         required: true
         content:
@@ -420,13 +281,6 @@ paths:
   # =============================================================================
   /einstein/data-libraries/{libraryId}/status:
     description: Get library status
-    x-connect:
-      resource-name: IAiGroundingLibraryStatusResource
-      family: AdlResourceFamily
-      min-version: 260
-      allows-portal-users: false
-      user-checks: USER_CAN_VIEW_EDIT_GENAI_UNIFIED_SETUP
-      supported-formats: JSON
     parameters:
       - $ref: '#/components/parameters/libraryIdPath'
 
@@ -435,20 +289,9 @@ paths:
       summary: Get library status
       description: |
         Returns the current library status. The overall status is derived from the
-        SearchIndex runtime status (same as the Aura UI), with per-stage breakdown
-        as supplementary detail.
+        SearchIndex runtime status, with per-stage breakdown as supplementary detail.
         Poll this endpoint to track provisioning or re-provisioning completion.
         Recommended polling interval: 5-30 seconds.
-      x-connect:
-        cost: Cheap
-        min-version: 260
-        signatures:
-          - methodName: getStatus
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - libraryId
       responses:
         '200':
           description: Library status
@@ -464,13 +307,6 @@ paths:
   # =============================================================================
   /einstein/data-libraries/{libraryId}/upload-readiness:
     description: Check if UDLO is ACTIVE and ready for file uploads
-    x-connect:
-      resource-name: IAiGroundingLibraryUploadReadinessResource
-      family: AdlResourceFamily
-      min-version: 260
-      allows-portal-users: false
-      user-checks: USER_CAN_VIEW_EDIT_GENAI_UNIFIED_SETUP
-      supported-formats: JSON
     parameters:
       - $ref: '#/components/parameters/libraryIdPath'
 
@@ -482,20 +318,8 @@ paths:
         for file uploads.
 
         When `waitMaxTime=0` (default), performs a single check and returns immediately.
-        When `waitMaxTime > 0`, the server polls internally (like the Aura checkUDLOStatus)
-        and returns as soon as `ready=true` or the timeout expires — eliminating
-        client-side polling loops.
-      x-connect:
-        cost: Cheap
-        min-version: 260
-        signatures:
-          - methodName: getUploadReadiness
-            min-version: 260
-            generated-aura-method: true
-            requires-test-result-registration: true
-            parameters:
-              - libraryId
-              - waitMaxTime
+        When `waitMaxTime > 0`, the server long-polls and returns as soon as
+        `ready=true` or the timeout expires — eliminating client-side polling loops.
       parameters:
         - name: waitMaxTime
           in: query
@@ -511,10 +335,6 @@ paths:
             default: 0
             minimum: 0
             maximum: 120000
-          x-connect:
-            type: Long
-            min-version: 260
-            default-value: 0
       responses:
         '200':
           description: Upload readiness status
@@ -543,10 +363,6 @@ components:
       schema:
         type: string
         pattern: '^[a-zA-Z0-9]{18}$'
-      x-connect:
-        type: Id
-        type-restriction: '1JD'
-        min-version: 260
 
   schemas:
     # =========================================================================
@@ -560,11 +376,6 @@ components:
         Input for creating an AI Grounding Library.
         Source type is determined by the groundingSource discriminator (sourceType field):
         SFDRIVE, KNOWLEDGE, or RETRIEVER.
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: CreateLibraryInput
       properties:
         masterLabel:
           type: string
@@ -601,11 +412,6 @@ components:
       description: |
         Input for updating an AI Grounding Library (PATCH semantics).
         All fields are optional — only set fields are updated.
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: UpdateLibraryInput
       properties:
         masterLabel:
           type: string
@@ -622,11 +428,6 @@ components:
     FileInfoInputRepresentation:
       type: object
       description: File metadata for upload URL generation
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: FileInfoInput
       properties:
         fileName:
           type: string
@@ -640,11 +441,6 @@ components:
     FileUploadUrlsInputRepresentation:
       type: object
       description: Input for generating presigned file upload URLs
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: FileUploadUrlsInput
       properties:
         files:
           type: array
@@ -668,11 +464,6 @@ components:
           SFDRIVE: '#/components/schemas/FileGroundingSourceInput'
           KNOWLEDGE: '#/components/schemas/KnowledgeGroundingSourceInput'
           RETRIEVER: '#/components/schemas/RetrieverGroundingSourceInput'
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: GroundingSourceInput
       properties:
         sourceType:
           type: string
@@ -718,11 +509,6 @@ components:
     KnowledgeConfigInputRepresentation:
       type: object
       description: Knowledge article grounding configuration
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: KnowledgeConfigInput
       properties:
         primaryIndexField1:
           type: string
@@ -758,11 +544,6 @@ components:
     ProvisionInputRepresentation:
       type: object
       description: Input for starting provision
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: ProvisionInput
       properties:
         uploadedFiles:
           type: array
@@ -775,11 +556,6 @@ components:
     UploadedFileInfoInputRepresentation:
       type: object
       description: Confirmation of an uploaded file
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: UploadedFileInfoInput
       properties:
         filePath:
           type: string
@@ -800,11 +576,6 @@ components:
     AddFilesInputRepresentation:
       type: object
       description: Input for adding files to an existing SFDRIVE library
-      x-connect:
-        representation-type: input
-        min-version: 260
-        apex-namespace: ConnectApi
-        class-name: AddFilesInput
       properties:
         uploadedFiles:
           type: array
@@ -825,13 +596,6 @@ components:
         Unified AI Grounding Library output. Used by POST (create), GET (detail),
         and LIST responses. Field population varies by operation — unpopulated
         fields are omitted from JSON via suppressNullsOnSerialization.
-      x-connect:
-        representation-type: output
-        representation-name: LibraryOutput
-        min-version: 260
-        suppress-nulls-on-serialization: true
-        apex-namespace: ConnectApi
-        class-name: LibraryOutput
       properties:
         libraryId:
           type: string
@@ -884,9 +648,6 @@ components:
         - `RETRIEVER` → `retrieverId`, `retrieverLabel`
       discriminator:
         propertyName: groundingSourceType
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         groundingSourceType:
           type: string
@@ -910,9 +671,6 @@ components:
     KnowledgeConfigOutputRepresentation:
       type: object
       description: Knowledge article configuration (read-only)
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         primaryIndexField1:
           type: string
@@ -941,9 +699,6 @@ components:
     FileUploadUrlOutputRepresentation:
       type: object
       description: Presigned URL for file upload
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         fileName:
           type: string
@@ -969,9 +724,6 @@ components:
     GroundingFileRefOutputRepresentation:
       type: object
       description: File reference within a grounding source
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         fileId:
           type: string
@@ -1004,9 +756,6 @@ components:
     FileUploadUrlsCollectionOutputRepresentation:
       type: object
       description: Collection of presigned URLs
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         libraryId:
           type: string
@@ -1028,9 +777,6 @@ components:
         mapping:
           SFDRIVE: '#/components/schemas/FileProvisionOutputRepresentation'
           KNOWLEDGE: '#/components/schemas/KnowledgeProvisionOutputRepresentation'
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         libraryId:
           type: string
@@ -1070,9 +816,6 @@ components:
     LibraryListOutputRepresentation:
       type: object
       description: Collection of AI Grounding Libraries
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         libraries:
           type: array
@@ -1087,13 +830,6 @@ components:
     UploadReadinessOutputRepresentation:
       type: object
       description: Upload readiness status for a library
-      x-connect:
-        representation-type: output
-        representation-name: UploadReadiness
-        min-version: 260
-        suppress-nulls-on-serialization: true
-        apex-namespace: ConnectApi
-        class-name: UploadReadiness
       properties:
         libraryId:
           type: string
@@ -1116,9 +852,6 @@ components:
     LibraryStatusOutputRepresentation:
       type: object
       description: Library status wrapper with nested indexing details
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         indexingStatus:
           $ref: '#/components/schemas/ProvisionStatusOutputRepresentation'
@@ -1127,9 +860,6 @@ components:
     ProvisionStatusOutputRepresentation:
       type: object
       description: Current library provision status with per-stage breakdown
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         libraryId:
           type: string
@@ -1153,9 +883,6 @@ components:
     AddFilesOutputRepresentation:
       type: object
       description: Response from adding files to an existing library
-      x-connect:
-        representation-type: output
-        min-version: 260
       properties:
         libraryId:
           type: string
